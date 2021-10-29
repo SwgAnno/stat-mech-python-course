@@ -10,8 +10,8 @@ Please send your solutions **no later than the indicated date** using the [labon
 
 | Notebook | Deadline           |
 | ------- | ------------------ |
-|  3-Random-Walks.ipynb | 2020-10-30, 23:59h |
-|  4-Ising-Model.ipynb | 2020-12-14, 23:59h |
+|  3-Random-Walks.ipynb | 2021-11-12, 23:59h |
+|  4-Ising-Model.ipynb | xxxx, xxx |
 
 
 
@@ -40,7 +40,7 @@ $ which python
 ```
 Clone this repository
 ```bash
-$ git clone https://github.com/fontclos/stat-mech-python-course.git
+$ git clone https://github.com/SZapperi/stat-mech-python-course.git
 ```
 A new folder called `stat-mech-python-course` will be created. Enter it and start jupyter by typing `jupyter lab`
 ```bash
