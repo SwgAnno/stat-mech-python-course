@@ -6,25 +6,25 @@ and slightly modified by
 Francesc Font-Clos
 May 2018
 """
-import scipy
+import numpy as np
 
 
 class IsingModel:
     """Ising model class."""
 
-    def __init__(self, N=10, T=2. / scipy.log(1. + scipy.sqrt(2.)),
+    def __init__(self, N=10, T=2. / np.log(1. + np.sqrt(2.)),
                  H=0., seed=1):
         """
-        Call scipy.random.seed with argument seed;
+        Call np.random.seed with argument seed;
         Set self.N to be N
         Build self.lattice to be random 50/50 0/1, using random_integers
         Call self.SetTemperatureField with T, H
         """
         if seed is None:
-            scipy.random.seed()
+            np.random.seed()
         else:
-            scipy.random.seed(seed)
-        self.lattice = scipy.random.random_integers(0, 1, (N, N))
+            np.random.seed(seed)
+        self.lattice = np.random.random_integers(0, 1, (N, N))
         self.SetTemperatureField(T, H)
         self.N = N
 
@@ -61,14 +61,14 @@ class IsingModel:
         self.privateField = H
         J = 1.      # Convention: also float to avoid int problems
         # Set up heat bath algorithm lookup table
-        self.heatBathProbUp = scipy.zeros(5, float)
+        self.heatBathProbUp = np.zeros(5, float)
         for nUp in range(0, 5):  # Four neighbors on square lattice
             sumNbrs = 2 * (nUp - 2)  # Sum of spins of neighbors
             eUp = -J * sumNbrs - H
             eDown = J * sumNbrs + H
             if T != 0:
-                boltzUp = scipy.exp(-eUp / T)
-                boltzDown = scipy.exp(-eDown / T)
+                boltzUp = np.exp(-eUp / T)
+                boltzDown = np.exp(-eDown / T)
                 self.heatBathProbUp[nUp] = boltzUp / (boltzUp + boltzDown)
             else:
                 if eUp > 0:
@@ -78,7 +78,7 @@ class IsingModel:
                 else:
                     self.heatBathProbUp[nUp] = 0.5
         # Set up Metropolis algorithm lookup table
-        self.MetropolisProbUp = scipy.zeros((2, 5), float)
+        self.MetropolisProbUp = np.zeros((2, 5), float)
         for nUp in range(0, 5):  # Four neighbors on square lattice
             sumNbrs = 2 * (nUp - 2)  # Sum of spins of neighbors
             eUp = -J * sumNbrs - H
@@ -89,11 +89,11 @@ class IsingModel:
                     self.MetropolisProbUp[0, nUp] = 1.
                     # If current spin is up, flip down with prob e^(-|dE|/T)
                     self.MetropolisProbUp[1, nUp] = 1. - \
-                        scipy.exp(-(eDown - eUp) / T)
+                        np.exp(-(eDown - eUp) / T)
                 else:  # Up spin unstable
                     # If current spin is down, flip up with prob e^(-|dE|/T)
                     self.MetropolisProbUp[
-                        0, nUp] = scipy.exp(-(eUp - eDown) / T)
+                        0, nUp] = np.exp(-(eUp - eDown) / T)
                     # If current spin is up, flip down
                     self.MetropolisProbUp[1, nUp] = 0.
             else:
@@ -111,7 +111,7 @@ class IsingModel:
         if T == 0:
             self.p = 0.
         else:
-            self.p = 1.0 - scipy.exp(-2. * J / T)
+            self.p = 1.0 - np.exp(-2. * J / T)
 
     def GetTemperature(self):
         return self.privateTemperature
@@ -145,15 +145,15 @@ class IsingModel:
         For each time in range(ntimes):
             Creates N random (i,j) pairs
             Creates N random numbers in (0,1]
-                (note: use 1-scipy.random.random() to avoid zero)
+                (note: use 1-np.random.random() to avoid zero)
             if rand < heatBathProbUp for NeighborsUp(i,j)
                 set spin lattice[i][j]=1
             else set it to zero
         """
         for time in range(nTimes):
-            iArr = scipy.random.randint(0, self.N, self.N * self.N)
-            jArr = scipy.random.randint(0, self.N, self.N * self.N)
-            randomArr = 1. - scipy.random.random(self.N * self.N)
+            iArr = np.random.randint(0, self.N, self.N * self.N)
+            jArr = np.random.randint(0, self.N, self.N * self.N)
+            randomArr = 1. - np.random.random(self.N * self.N)
             for i, j, rand in zip(iArr, jArr, randomArr):
                 if rand < self.heatBathProbUp[self.NeighborsUp(i, j)]:
                     self.lattice[i, j] = 1
@@ -176,9 +176,9 @@ class IsingModel:
             updates_per_sweep = self.N * self.N
 
         for time in range(nTimes):
-            iArr = scipy.random.randint(0, self.N, updates_per_sweep)
-            jArr = scipy.random.randint(0, self.N, updates_per_sweep)
-            randomArr = 1. - scipy.random.random(updates_per_sweep)
+            iArr = np.random.randint(0, self.N, updates_per_sweep)
+            jArr = np.random.randint(0, self.N, updates_per_sweep)
+            randomArr = 1. - np.random.random(updates_per_sweep)
             for i, j, rand in zip(iArr, jArr, randomArr):
                 if rand < self.MetropolisProbUp[self.lattice[i][j],
                                                 self.NeighborsUp(i, j)]:
@@ -195,8 +195,8 @@ class IsingModel:
         Call FlipNeighbors; add one to its result
         return spinsFlipped
         """
-        i = scipy.random.randint(0, self.N)
-        j = scipy.random.randint(0, self.N)
+        i = np.random.randint(0, self.N)
+        j = np.random.randint(0, self.N)
         oldSpin = self.lattice[i, j]
         self.lattice[i, j] = (self.lattice[i, j] + 1) % 2
         spinsFlipped = 1 + self.FlipNeighbors(i, j, oldSpin)
@@ -221,7 +221,7 @@ class IsingModel:
         neighbors = [(ip1, j), (im1, j), (i, jp1), (i, jm1)]
         for m, n in neighbors:
             if self.lattice[m][n] == oldSpin:
-                if scipy.random.random() < self.p:
+                if np.random.random() < self.p:
                     self.lattice[m][n] = (self.lattice[m][n] + 1) % 2
                     spinsFlipped += 1 + self.FlipNeighbors(m, n, oldSpin)
         return spinsFlipped
@@ -243,8 +243,8 @@ class IsingModel:
                   with probability p, put it on the stack
         Return spinsFlipped
         """
-        i = scipy.random.randint(0, self.N)
-        j = scipy.random.randint(0, self.N)
+        i = np.random.randint(0, self.N)
+        j = np.random.randint(0, self.N)
         oldSpin = self.lattice[i, j]
         toFlip = [(i, j)]
         spinsFlipped = 0
@@ -261,7 +261,7 @@ class IsingModel:
                 neighbors = [(ip1, j), (im1, j), (i, jp1), (i, jm1)]
                 for m, n in neighbors:
                     if self.lattice[m, n] == oldSpin:
-                        if scipy.random.random() < self.p:
+                        if np.random.random() < self.p:
                             toFlip.append((m, n))
         return spinsFlipped
 
